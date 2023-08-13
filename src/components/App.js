@@ -11,7 +11,7 @@ function App() {
   const [isEditProfilePopuOpen, setEditProfilePopupOpen] = useState(false);
   const [isAddPlacePopupOpen, setAddPlacePopupOpen] = useState(false);
   const [isEditAvatarPopupOpen, setEditAvatarPopupOpen] = useState(false);
-  const [selectedCard, setSelectedCard] = useState(false);
+  const [selectedCard, setSelectedCard] = useState({ name: '', link: '' });
 
   function handleCardClick(card) {
     setSelectedCard(card)
@@ -33,7 +33,7 @@ function App() {
     setEditAvatarPopupOpen(false)
     setEditProfilePopupOpen(false)
     setAddPlacePopupOpen(false)
-    setSelectedCard(false)
+    setSelectedCard({ name: '', link: '' })
   }
 
   return (
@@ -47,7 +47,7 @@ function App() {
           onCardClick={handleCardClick}
         />
         <Footer />
-        <PopupWithForm name="edit-profile" title="Редактировать профиль" isOpen={isEditProfilePopuOpen} onClose={closeAllPopups}>
+        <PopupWithForm name="edit-profile" title="Редактировать профиль" isOpen={isEditProfilePopuOpen} onClose={closeAllPopups} buttonText="Сохранить">
           <label className="popup__item popup__item_name">
             <input
               id="name-input"
@@ -72,12 +72,9 @@ function App() {
             />
             <span className="profession-input-error popup__input-error" />
           </label>
-          <button type="submit" className="popup__button">
-            Сохранить
-          </button>
         </PopupWithForm>
         
-        <PopupWithForm name="add-card" title="Новое место" isOpen={isAddPlacePopupOpen} onClose={closeAllPopups}>
+        <PopupWithForm name="add-card" title="Новое место" isOpen={isAddPlacePopupOpen} onClose={closeAllPopups} buttonText="Сохранить">
           <label className="popup__item popup__item_place">
             <input
               id="place-input"
@@ -106,16 +103,9 @@ function App() {
               Заполните это поле
             </span>
           </label>
-          <button
-            type="submit"
-            className="popup__button popup__button_add-card popup__button_disabled"
-            disabled=""
-          >
-            Сохранить
-          </button>
         </PopupWithForm>
 
-        <PopupWithForm name="edit-avatar" title="Обновить аватар" isOpen={isEditAvatarPopupOpen} onClose={closeAllPopups}>
+        <PopupWithForm name="edit-avatar" title="Обновить аватар" isOpen={isEditAvatarPopupOpen} onClose={closeAllPopups} buttonText="Да">
           <label className="popup__item popup__item_avatar">
             <input
               id="avatar-input"
@@ -126,24 +116,12 @@ function App() {
             />
             <span className="avatar-input-error popup__input-error" />
           </label>
-          <button
-            type="submit"
-            className="popup__button popup__button_edit-avatar"
-          >
-            Да
-          </button>
         </PopupWithForm>
 
-        <PopupWithForm name="delete-card" title="Вы уверены?">
-          <button
-            type="submit"
-            className="popup__button popup__button_delete-card"
-          >
-            Да
-          </button>
+        <PopupWithForm name="delete-card" title="Вы уверены?" buttonText="Да">
         </PopupWithForm>
         <ImagePopup
-          isOpen={selectedCard !== false}  // Change this condition
+          isOpen={selectedCard.link !== ''}
           onClose={closeAllPopups}
           selectedCard={selectedCard}
         />

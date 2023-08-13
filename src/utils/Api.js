@@ -59,7 +59,8 @@ class Api {
         name: name,
         about: about
       })
-    });
+    })
+    .then(this._checkResponse)
   }
 
   sendAvatar(avatar) {
@@ -67,7 +68,8 @@ class Api {
       method: 'PATCH',
       headers: this.headers,
       body: JSON.stringify(avatar)
-    });
+    })
+    .then(this._checkResponse)
   }
 
   getUserInfo() {

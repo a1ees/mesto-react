@@ -6,6 +6,7 @@ export default function Card(props) {
       <button type="button" className="cards__remove-btn cards__remove-btn_active" />
         <img className="cards__image" 
         src={props.card.link}
+        alt={props.card.name}
         onClick={props.onCardClick}
        />
       <div className="cards__content">
