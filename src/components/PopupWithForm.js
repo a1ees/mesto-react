@@ -1,3 +1,5 @@
+import React from "react";
+
 function PopupWithForm(props) {
   return (
     <section className={`popup popup_${props.name} ${props.isOpen && "popup_opened"}`}>
@@ -8,7 +10,7 @@ function PopupWithForm(props) {
           onClick={props.onClose}
         />
         <h2 className="popup__title">{props.title}</h2>
-        <form className={`popup__form popup__form_${props.name}`}>
+        <form onSubmit={props.onSubmit} className={`popup__form popup__form_${props.name}`}>
           {props.children}
           <button
             type="submit"

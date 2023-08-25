@@ -1,6 +1,6 @@
 
   .cards__remove-btn {
-    display: none;
+    display: block;
     position: absolute;
     top: 20px;
     right: 20px;

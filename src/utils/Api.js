@@ -13,22 +13,20 @@ class Api {
     }
     return Promise.reject(`Ошибка: ${res.status}`);
   }
+  // при портировании, мы объединили метод удаления лайка и постановки в changeLikeCardStatus
+  // В метод бы будем передавать кард id и функцию, проверяющую состояние лайка карточки
+  changeLikeCardStatus(cardId, isLiked) {
+    // сделали метод, проверяющий, лайкнута ли карточка, true = удаляем лайк, false = добавляем
+    const method = isLiked ? 'DELETE' : 'PUT';
+    const url = `${this.baseUrl}/cards/${cardId}/likes`;
 
-  deleteLike(deleteId) {
-    return fetch(`${this.baseUrl}/cards/${deleteId}/likes`, {
-      method: 'DELETE',
+    return fetch(url, {
+      // метод delete || put будет выбран в зависимости от состояния лайка карточки
+      method: method,
       headers: this.headers,
-    })
-      .then(this._checkResponse)
-  }
-
-  sendLike(likeId) {
-    return fetch(`${this.baseUrl}/cards/${likeId}/likes`, {
-      method: 'PUT',
-      headers: this.headers,
-      body: JSON.stringify({})
-    })
-      .then(this._checkResponse)
+      // если метод = put, мы отправляем на сервер данные json, если нет - ничего не отправляем
+      body: method === 'PUT' ? JSON.stringify({}) : undefined
+    }).then(this._checkResponse);
   }
 
   deleteCard(cardId) {

@@ -1,17 +1,72 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import '../index.css';
 import Header from './Header.js';
 import Main from './Main.js';
 import Footer from './Footer';
 import PopupWithForm from './PopupWithForm';
 import ImagePopup from './ImagePopup';
+import { api } from '../utils/Api';
+import { CurrentUserContext } from '../contexts/CurrentUserContext';
+import EditProfilePopup from './EditProfilePopup';
+import EditAvatarPopup from './EditAvatarPopup';
+import AddPlacePopup from './AddPlacePopup';
+
 
 function App() {
-  const [isEditProfilePopuOpen, setEditProfilePopupOpen] = useState(false);
+  const [isEditProfilePopupOpen, setEditProfilePopupOpen] = useState(false);
   const [isAddPlacePopupOpen, setAddPlacePopupOpen] = useState(false);
   const [isEditAvatarPopupOpen, setEditAvatarPopupOpen] = useState(false);
   const [selectedCard, setSelectedCard] = useState({ name: '', link: '' });
+  const [currentUser, setCurrentUser] = useState({ name: '', about: '', avatar: '', _id: '' })
+  const [cards, setCards] = useState([])
+
+  useEffect(() => {
+    api.getUserInfo()
+    .then((userInfo) => {
+      setCurrentUser(userInfo);
+    })
+    .catch(error => {
+      console.error('Ошибка при получении данных:', error);
+    });
+
+    // api.getCardsItem() при монтировании компонента
+    api.getCardsItem()
+      .then((cardsData) => {
+        setCards(cardsData)
+      })
+      .catch(error => {
+        console.error('Ошибка при получении данных:', error);
+      });
+  }, [])
+
+  //создали функцию лайка/дизлайка
+  function handleCardLike(card) {
+    // проверка лайка на карточке методом перебора массива и поиском хотя бы одного удоволетворяющего условия(i._id === currentUser._id) 
+    const isLiked = card.likes.some(item => item._id === currentUser._id);
+    //делаем запрос к апи
+    api.changeLikeCardStatus(card._id, isLiked)
+    //обновленное состояние карточки после изменения лайка
+    .then((newCard) => {
+      // обновили состояние массива cards
+        setCards((state) => state.map((c) => c._id === card._id ? newCard : c));
+    })
+    .catch(error => {
+      console.error('Ошибка при получении данных:', error);
+    });
+}
+
+  function handleCardDelete(cardToDelete) {
+    //делаем запрос к апи для удаления карточки, передали в параметр card id
+    api.deleteCard(cardToDelete._id)
+    .then(() => {
+      // обновили состояние массива cards исключив удаленную карточку
+      setCards((state) => state.filter(card => card._id !== cardToDelete._id))
+    })
+    .catch(error => {
+      console.error('Ошибка при получении данных:', error);
+    });
+  }
 
   function handleCardClick(card) {
     setSelectedCard(card)
@@ -36,99 +91,72 @@ function App() {
     setSelectedCard({ name: '', link: '' })
   }
 
+  function handleUpdateUser({ name, about }) {
+    api.sendUserInfo({ name, about })
+    .then((onUpdateUser) => {
+      setCurrentUser(onUpdateUser)
+      closeAllPopups()
+    })
+    .catch(error => {
+      console.error('Ошибка при отправке:', error);
+    });
+  }
+
+  function handleUpdateAvatar(avatar) {
+    api.sendAvatar(avatar)
+    .then((onUpdateAvatar) => {
+      setCurrentUser(onUpdateAvatar)
+      closeAllPopups()
+    })
+    .catch(error => {
+      console.error('Ошибка при отправке:', error);
+    });
+  }
+
+  function handleAddPlaceSubmit({ name, link }) {
+    api.sendCard({ name, link })
+    .then((newCard) => {
+      setCards([newCard, ...cards]);
+      closeAllPopups()
+    })
+    .catch(error => {
+      console.error('Ошибка при отправке:', error);
+    });
+  }
+
   return (
-    <div className="page">
-      <div className="page__container">
-        <Header />
-        <Main
-          onEditProfile={handleEditProfileClick}
-          onAddPlace={handleAddPlaceClick}
-          onEditAvatar={handleEditAvatarClick}
-          onCardClick={handleCardClick}
-        />
-        <Footer />
-        <PopupWithForm name="edit-profile" title="Редактировать профиль" isOpen={isEditProfilePopuOpen} onClose={closeAllPopups} buttonText="Сохранить">
-          <label className="popup__item popup__item_name">
-            <input
-              id="name-input"
-              className="popup__input popup__input_name"
-              type="text"
-              name="name"
-              minLength={2}
-              maxLength={40}
-              required=""
-            />
-            <span className="name-input-error popup__input-error" />
-          </label>
-          <label className="popup__item popup__item_profession">
-            <input
-              id="profession-input"
-              className="popup__input popup__input_profession"
-              type="text"
-              name="about"
-              minLength={2}
-              maxLength={200}
-              required=""
-            />
-            <span className="profession-input-error popup__input-error" />
-          </label>
-        </PopupWithForm>
-        
-        <PopupWithForm name="add-card" title="Новое место" isOpen={isAddPlacePopupOpen} onClose={closeAllPopups} buttonText="Сохранить">
-          <label className="popup__item popup__item_place">
-            <input
-              id="place-input"
-              className="popup__input popup__input_place"
-              type="text"
-              placeholder="Название"
-              name="place"
-              minLength={2}
-              maxLength={30}
-              required=""
-            />
-            <span className="place-input-error popup__input-error">
-              Заполните это поле
-            </span>
-          </label>
-          <label className="popup__item popup__item_place-pic">
-            <input
-              id="place-pic-input"
-              className="popup__input popup__input_place-pic"
-              type="url"
-              placeholder="Ссылка на картинку"
-              name="placepic"
-              required=""
-            />
-            <span className="place-pic-input-error popup__input-error">
-              Заполните это поле
-            </span>
-          </label>
-        </PopupWithForm>
+    <CurrentUserContext.Provider value={currentUser}>
+      <div className="page">
+        <div className="page__container">
+          <Header />
+          <Main
+            onEditProfile={handleEditProfileClick}
+            onAddPlace={handleAddPlaceClick}
+            onEditAvatar={handleEditAvatarClick}
+            onCardClick={handleCardClick}
+            onCardLike={handleCardLike}
+            onCardDelete={handleCardDelete}
+            cards={cards}
+          />
+          <Footer />
+          
+          <EditProfilePopup isOpen={isEditProfilePopupOpen} onClose={closeAllPopups} onUpdateUser={handleUpdateUser} /> 
+          
+          <AddPlacePopup isOpen={isAddPlacePopupOpen} onClose={closeAllPopups} onAddPlace={handleAddPlaceSubmit} />
 
-        <PopupWithForm name="edit-avatar" title="Обновить аватар" isOpen={isEditAvatarPopupOpen} onClose={closeAllPopups} buttonText="Да">
-          <label className="popup__item popup__item_avatar">
-            <input
-              id="avatar-input"
-              className="popup__input popup__input_avatar"
-              type="URL"
-              name="avatar"
-              required=""
-            />
-            <span className="avatar-input-error popup__input-error" />
-          </label>
-        </PopupWithForm>
+          <EditAvatarPopup isOpen={isEditAvatarPopupOpen} onClose={closeAllPopups} onUpdateAvatar={handleUpdateAvatar} /> 
 
-        <PopupWithForm name="delete-card" title="Вы уверены?" buttonText="Да">
-        </PopupWithForm>
-        <ImagePopup
-          isOpen={selectedCard.link !== ''}
-          onClose={closeAllPopups}
-          selectedCard={selectedCard}
-        />
+          <PopupWithForm name="delete-card" title="Вы уверены?" buttonText="Да">
+          </PopupWithForm>
+          <ImagePopup
+            isOpen={selectedCard.link !== ''}
+            onClose={closeAllPopups}
+            selectedCard={selectedCard}
+          />
+        </div>
       </div>
-    </div>
+    </CurrentUserContext.Provider>
   );
 }
 
 export default App;
-
