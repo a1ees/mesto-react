@@ -19,9 +19,12 @@ function AddPlacePopup(props) {
       name: name,
       link: link,
     })
+  }
+
+  React.useEffect(() => {
     setName('');
     setLink('');
-  }
+}, [props.isOpen]); 
 
   return(
     <PopupWithForm name="add-card" title="Новое место" buttonText="Сохранить" isOpen={props.isOpen} onClose={props.onClose} onSubmit={handleSubmit}>
